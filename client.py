@@ -5,7 +5,7 @@ class Client(object):
     __AGENT = "HTTPTool/1.0"
     __TYPE = "application/x-www-form-urlencoded"
     __CRLF = '\r\n'
-    def __init__(self, url):
+    def __init__(self, url, timeout=2):
         new_url, port, params = self.parse_url(url)
         url = urlparse(new_url)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -13,9 +13,12 @@ class Client(object):
         self.path = url.path
         self.port = port
         self.params = params
+        self.timeout = timeout
+        self.is_closed = False
         self.connect()
 
-    def parse_url(self, url):
+    @staticmethod
+    def parse_url(url):
         try:
             index_init = int(url.index(':', 5)) + 1
             index_end = int(url.index('/', index_init))
@@ -41,7 +44,7 @@ class Client(object):
     def recv(self):
         data = b''
         part = None
-        self.socket.settimeout(2)
+        self.socket.settimeout(self.timeout)
         try:
             while part != b'':
                 part = self.socket.recv(1024)
@@ -66,3 +69,8 @@ class Client(object):
     def close(self):
         self.socket.shutdown(1)
         self.socket.close()
+        self.is_closed = True
+
+    def __del__(self):
+        if not self.is_closed:
+            self.close()

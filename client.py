@@ -54,16 +54,20 @@ class Client(object):
         return data
 
     def GET(self):
-        self.socket.send(('GET %s HTTP/1.1%sHost: %s%s' % (self.path, self.__CRLF, self.host, self.__CRLF + self.__CRLF)).encode())
+        self.socket.send(f'GET {self.path} HTTP/1.1{self.host}'
+                         f'Host: {self.__CRLF}{self.__CRLF}'.encode())
         return self.recv()
 
-    def POST(self):
-        self.socket.send(('POST %s HTTP/1.1%sHost: %s%sUser-Agent: %s%sContent-Type: %s%sContent-Length: %d%s%s' %
-                         (self.path, self.__CRLF,
-                          self.host, self.__CRLF, self.__AGENT, self.__CRLF, self.__TYPE, self.__CRLF, len(self.params),
-                          self.__CRLF + self.__CRLF,
-                          self.params)).endcode())
-
+    def POST(self, cont_type=__TYPE, content=None):
+        if content is None:
+            content = self.params
+        self.socket.send(
+            f'POST {self.path} HTTP/1.1{self.__CRLF}'
+            f'Host: {self.host}{self.__CRLF}'
+            f'User-Agent: {self.__AGENT}{self.__CRLF}'
+            f'Content-Type: {cont_type}{self.__CRLF}'
+            f'Content-Length: {len(content)}{self.__CRLF + self.__CRLF}'
+            f'{content}'.encode())
         return self.recv()
 
     def close(self):
